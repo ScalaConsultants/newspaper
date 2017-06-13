@@ -29,4 +29,6 @@ object MailerRunner extends App {
       msg.committableOffset.commitScaladsl()
     }
     .runWith(Sink.ignore)
+
+  new io.scalac.newspaper.mailer.events.ChangeDetected()
 }
