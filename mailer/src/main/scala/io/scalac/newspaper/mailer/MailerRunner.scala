@@ -16,8 +16,7 @@ object MailerRunner extends App {
   val mailRecipient = MailRecipient("patryk@scalac.io")
   val mailer: MailSender = new LogSender() //TODO: use some dependency injection
 
-  //TODO: use Protobuff
-  val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new StringDeserializer)
+  val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, ChangeDetectedPBDeserializer())
     .withBootstrapServers(s"$host:9092")
     .withGroupId("Newspaper-Mailer")
     .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
@@ -25,10 +24,8 @@ object MailerRunner extends App {
   val subscription = Subscriptions.topics("newspaper")
   Consumer.committableSource(consumerSettings, subscription)
     .mapAsync(1) { msg =>
-      mailer.send(mailRecipient, msg.record.value())
+      mailer.send(mailRecipient, msg.record.value().pageUrl)
       msg.committableOffset.commitScaladsl()
     }
     .runWith(Sink.ignore)
-
-  new io.scalac.newspaper.mailer.events.ChangeDetected()
 }
