@@ -1,8 +1,0 @@
-*.class
-*.log
-*.cache
-/.idea
-/target
-/project/target
-
-*environment.conf
