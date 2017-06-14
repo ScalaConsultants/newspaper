@@ -12,7 +12,7 @@ trait MailSender {
 
 class LogSender() extends MailSender{
   override def send(to: MailRecipient, mailContent: String) = {
-    println(s"[SENDING to: ${to.to}] $mailContent")
+    println(s"[FAKE][SENDING to: ${to.to}] $mailContent")
     Future.successful(MailSent)
   }
 }
