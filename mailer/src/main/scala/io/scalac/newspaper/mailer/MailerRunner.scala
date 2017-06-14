@@ -12,12 +12,10 @@ object MailerRunner extends App {
   implicit val system = ActorSystem("Newspaper-Mailer-System")
   implicit val materializer = ActorMaterializer()
 
-  val host = "192.168.99.100" //TODO: move to config
   val mailRecipient = MailRecipient("patryk@scalac.io")
   val mailer: MailSender = new LogSender() //TODO: use some dependency injection
 
   val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, ChangeDetectedPBDeserializer())
-    .withBootstrapServers(s"$host:9092")
     .withGroupId("Newspaper-Mailer")
     .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
 
