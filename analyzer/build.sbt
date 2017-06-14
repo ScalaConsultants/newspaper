@@ -1,4 +1,4 @@
-name := "newspaper-mailer"
+name := "newspaper-analyzer"
 
 version := "1.0"
 
@@ -11,12 +11,5 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
   "com.typesafe.akka" %% "akka-stream" % akkaVersion,
   "com.typesafe.akka" %% "akka-stream-kafka" % "0.14",
-  "ch.lightshed" %% "courier" % "0.1.4",
   "org.scalatest" %% "scalatest" % "3.0.1" % "test"
-)
-
-resolvers += "lightshed-maven" at "http://dl.bintray.com/content/lightshed/maven"
-
-PB.targets in Compile := Seq(
-  scalapb.gen() -> (sourceManaged in Compile).value
 )

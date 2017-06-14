@@ -15,20 +15,17 @@ object MailerRunner extends App {
   implicit val ec: ExecutionContext = system.dispatcher
   implicit val materializer = ActorMaterializer()
 
-  val host = "192.168.99.100" //TODO: move to config
   val mailRecipient = MailRecipient("patryk+newsletter@scalac.io")
   val mailer: MailSender = buildNewMailer()
 
-  //TODO: use Protobuff
-  val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new StringDeserializer)
-    .withBootstrapServers(s"$host:9092")
+  val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, ChangeDetectedPBDeserializer())
     .withGroupId("Newspaper-Mailer")
     .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
 
   val subscription = Subscriptions.topics("newspaper")
   Consumer.committableSource(consumerSettings, subscription)
     .mapAsync(1) { msg =>
-      mailer.send(mailRecipient, msg.record.value()).map(_ => msg)
+      mailer.send(mailRecipient, msg.record.value().pageUrl).map(_ => msg)
     }.mapAsync(1) { msg =>
       msg.committableOffset.commitScaladsl()
     }
