@@ -1,8 +1,0 @@
-*.class
-*.log
-*.cache
-/.idea
-/target
-/project/target
-/.ensime
-/.ensime_cache
