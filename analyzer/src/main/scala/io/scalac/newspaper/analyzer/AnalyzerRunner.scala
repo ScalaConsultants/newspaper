@@ -16,11 +16,11 @@ object AnalyzerRunner extends App {
   implicit val system = ActorSystem("Newspaper-Analyzer-System")
   implicit val materializer = ActorMaterializer()
 
-  val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new ContentFetchedPBDeserializer)
+  val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new ContentFetchedDeserializer)
     .withGroupId("Newspaper-Analyzer")
     .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
 
-  val producerSettings = ProducerSettings(system, new ByteArraySerializer, new ChangeDetectedPBSerializer)
+  val producerSettings = ProducerSettings(system, new ByteArraySerializer, new ChangeDetectedSerializer)
 
   val subscription = Subscriptions.topics("newspaper-content")
   Consumer.committableSource(consumerSettings, subscription)
