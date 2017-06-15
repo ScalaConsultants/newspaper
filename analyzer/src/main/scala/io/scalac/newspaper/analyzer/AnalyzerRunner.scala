@@ -8,7 +8,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.{ProducerRecord}
-import org.apache.kafka.common.serialization.{StringDeserializer, ByteArrayDeserializer, ByteArraySerializer}
+import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
 
 import events._
 
@@ -16,7 +16,7 @@ object AnalyzerRunner extends App {
   implicit val system = ActorSystem("Newspaper-Analyzer-System")
   implicit val materializer = ActorMaterializer()
 
-  val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new StringDeserializer)
+  val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new ContentFetchedPBDeserializer)
     .withGroupId("Newspaper-Analyzer")
     .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
 
@@ -27,8 +27,9 @@ object AnalyzerRunner extends App {
     .map { msg =>
       // Do sth with msg.record.value
       println(s"[ANALYZING] ${msg.record.value}")
-      val event = ChangeDetected(msg.record.value, "label", "content")
-      val record = new ProducerRecord[Array[Byte], ChangeDetected]("newspaper", event)
+      val input = msg.record.value
+      val output = ChangeDetected(input.pageUrl, "label", input.pageContent)
+      val record = new ProducerRecord[Array[Byte], ChangeDetected]("newspaper", output)
       ProducerMessage.Message(record, msg.committableOffset)
     }
     .via(Producer.flow(producerSettings))

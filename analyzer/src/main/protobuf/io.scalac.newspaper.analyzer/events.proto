@@ -7,3 +7,8 @@ message ChangeDetected {
     string pageLabel = 2;
     string pageContent = 3;
 }
+
+message ContentFetched {
+    string pageUrl = 1;
+    string pageContent = 2;
+}
