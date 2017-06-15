@@ -5,6 +5,7 @@ import akka.kafka.scaladsl.Consumer
 import akka.kafka.{Subscriptions, ConsumerSettings}
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
+import com.typesafe.config.ConfigFactory
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.{StringDeserializer, ByteArrayDeserializer}
 
@@ -14,6 +15,8 @@ object MailerRunner extends App {
   implicit val system = ActorSystem("Newspaper-Mailer-System")
   implicit val ec: ExecutionContext = system.dispatcher
   implicit val materializer = ActorMaterializer()
+
+  val configuration = ConfigFactory.load()
 
   val mailRecipient = MailRecipient("patryk+newsletter@scalac.io")
   val mailer: MailSender = buildNewMailer()
@@ -34,12 +37,17 @@ object MailerRunner extends App {
 
 
   def buildNewMailer() = {
-//    new LogSender() //TODO: use some dependency injection
-    new SmtpMailSender(new MailerConf(
-      host = "smtp.gmail.com", //host,
-      port = 587,
-      user = "patryk@scalac.io", //"user1@domain.tld",
-      password = "mypassword"
-    ))
+    val mailingConf = configuration.getConfig("email")
+    mailingConf.getBoolean("debug") match {
+      case false =>
+        new SmtpMailSender(new MailerConf(
+          host = mailingConf.getString("host"),
+          port = mailingConf.getInt("port"),
+          user = mailingConf.getString("user"),
+          password = mailingConf.getString("password")
+        ))
+      case _ =>
+        new LogSender()
+    }
   }
 }
