@@ -1,5 +1,7 @@
 # Newsletter
 
+[Architecture diagram](https://www.draw.io/#G0B2OTKxXqvVOUYW1MSmJLQ05DOVU)
+
 ## Running
 
 ### Locally (no `docker-machine`)
