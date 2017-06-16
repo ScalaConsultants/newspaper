@@ -13,3 +13,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-stream-kafka" % "0.14",
   "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 )
+
+PB.targets in Compile := Seq(
+  scalapb.gen() -> (sourceManaged in Compile).value
+)

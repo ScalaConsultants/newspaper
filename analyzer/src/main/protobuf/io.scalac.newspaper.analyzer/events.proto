@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package io.scalac.newspaper.analyzer;
+
+message ChangeDetected {
+    string pageUrl = 1;
+    string pageLabel = 2;
+    string pageContent = 3;
+}
+
+message ContentFetched {
+    string pageUrl = 1;
+    string pageContent = 2;
+}
