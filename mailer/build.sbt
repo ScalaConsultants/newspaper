@@ -13,6 +13,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-stream-kafka" % "0.14",
   "com.typesafe" % "config" % "1.3.1",
   "ch.lightshed" %% "courier" % "0.1.4",
+  "io.scalac" %% "newspaper-schema" % "0.1.0-SNAPSHOT",
   "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 )
 
