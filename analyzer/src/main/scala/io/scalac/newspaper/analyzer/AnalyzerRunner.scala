@@ -28,7 +28,7 @@ object AnalyzerRunner extends App {
       // Do sth with msg.record.value
       println(s"[ANALYZING] ${msg.record.value}")
       val input = msg.record.value
-      val output = ChangeDetected(input.pageUrl, "label", input.pageContent)
+      val output = ChangeDetected(input.pageUrl, input.pageContent)
       val record = new ProducerRecord[Array[Byte], ChangeDetected]("newspaper", output)
       ProducerMessage.Message(record, msg.committableOffset)
     }

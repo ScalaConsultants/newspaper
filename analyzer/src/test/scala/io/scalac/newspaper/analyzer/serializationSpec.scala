@@ -15,7 +15,7 @@ class serializationSpec extends FlatSpec with Matchers {
   }
 
   "ChangeDetected" should "be serialized and deserialized properly" in {
-    val changeDetected = ChangeDetected("foo", "bar", "baz")
+    val changeDetected = ChangeDetected("foo", "bar")
     val topic = "fnord"
     val serializer = new ChangeDetectedSerializer
     val deserializer = new ChangeDetectedDeserializer

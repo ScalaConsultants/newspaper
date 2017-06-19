@@ -4,8 +4,7 @@ package io.scalac.newspaper.analyzer;
 
 message ChangeDetected {
     string pageUrl = 1;
-    string pageLabel = 2;
-    string pageContent = 3;
+    string pageContent = 2;
 }
 
 message ContentFetched {
