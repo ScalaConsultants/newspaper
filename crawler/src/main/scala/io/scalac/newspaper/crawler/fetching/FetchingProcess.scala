@@ -2,12 +2,13 @@ package io.scalac.newspaper.crawler.fetching
 
 import akka.NotUsed
 import akka.stream.ClosedShape
-import akka.stream.scaladsl.{Flow, GraphDSL, Partition, RunnableGraph, Sink}
+import akka.stream.scaladsl.{Flow, GraphDSL, Partition, RunnableGraph}
+import io.scalac.newspaper.crawler.failure.FailureHandler
 import io.scalac.newspaper.crawler.fetching.FetchingFlow.{URLFetched, URLFetchingResult}
 import io.scalac.newspaper.crawler.publishing.Publisher
 import io.scalac.newspaper.crawler.urls.URLsStore
 
-trait FetchingProcess extends URLsStore with FetchingFlow with Publisher {
+trait FetchingProcess extends URLsStore with FetchingFlow with Publisher with FailureHandler {
 
   def process = RunnableGraph.fromGraph(GraphDSL.create(){ implicit builder: GraphDSL.Builder[NotUsed] =>
     import GraphDSL.Implicits._
@@ -16,7 +17,7 @@ trait FetchingProcess extends URLsStore with FetchingFlow with Publisher {
     val fetchingFlow = builder.add(fetchURLs)
     val responsesSplitter = builder.add(Partition(2, splitResponses))
     val publisher = builder.add(publish)
-    val failureHandler = builder.add(Sink.ignore)
+    val failureHandler = builder.add(handleFailure)
     val toURLFetched = builder.add(urlFetchingResult2URLFetched)
 
     inputURLs ~> fetchingFlow ~> responsesSplitter

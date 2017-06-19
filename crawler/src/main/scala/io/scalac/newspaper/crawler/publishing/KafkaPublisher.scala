@@ -17,13 +17,13 @@ import scala.concurrent.Future
 trait KafkaPublisher extends Publisher {
 
   def system: ActorSystem
+  def topic: String
   private def producerSettings = ProducerSettings(system, new ByteArraySerializer, new ContentFetchedSerializer)
 
-  override def publish: Sink[URLFetched, Future[Done]] =
+  override def publish: Sink[URLFetched, Future[Done]] = Sink.foreach(println)
     Flow[URLFetched]
-      .map(new ProducerRecord[Array[Byte], ContentFetched]("Topic", _))
+      .map(new ProducerRecord[Array[Byte], ContentFetched](topic, _))
       .toMat(Producer.plainSink[Array[Byte], ContentFetched](producerSettings))(Keep.right)
-
 }
 
 object KafkaPublisher {

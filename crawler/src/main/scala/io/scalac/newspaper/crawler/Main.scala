@@ -32,6 +32,8 @@ object Main extends App {
     override def fetchingConfig: HttpFetchingFlow.FetchingConfig = FetchingConfig(config.getInt("crawler.http.max.parallelism"))
 
     override def wsClient: StandaloneWSClient = StandaloneAhcWSClient()
+
+    override val topic: String = config.getString("kafka.topic")
   }
 
   val pageContentRefresher = system.actorOf(PageContentRefresher.props(fetchingProcess))
