@@ -41,3 +41,9 @@ docker exec -it kafka /opt/kafka_2.12-0.10.2.1/bin/kafka-console-producer.sh --b
 ```
 
 You may need to change the version string in `kafka_2.12-0.10.2.1`.
+
+### Connecting to psql database
+
+``` Shell
+docker exec -it postgres psql -h postgres -U postgres
+```
