@@ -7,7 +7,9 @@ import scala.collection.immutable.Seq
 trait HardcodedURLsStore extends URLsStore {
   override def getURLs: Source[String, NotUsed] = Source(
     Seq(
-      "https://blog.scalac.io/"
+      "https://blog.scalac.io/",
+      "http://www.strongtyped.io/blog/",
+      "https://jvican.github.io/"
     )
   )
 }

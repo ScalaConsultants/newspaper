@@ -1,5 +1,7 @@
 package io.scalac.newspaper.crawler
 
+import java.nio.file.{Path, Paths}
+
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
@@ -9,7 +11,7 @@ import io.scalac.newspaper.crawler.fetching.HttpFetchingFlow.FetchingConfig
 import io.scalac.newspaper.crawler.fetching.HttpURLFetcher.URLFetcherConfig
 import io.scalac.newspaper.crawler.fetching.{FetchingProcess, HttpFetchingFlow, HttpURLFetcher}
 import io.scalac.newspaper.crawler.publishing.KafkaPublisher
-import io.scalac.newspaper.crawler.urls.HardcodedURLsStore
+import io.scalac.newspaper.crawler.urls.FileURLsStore
 import play.api.libs.ws.StandaloneWSClient
 import play.api.libs.ws.ahc.StandaloneAhcWSClient
 
@@ -24,7 +26,7 @@ object Main extends App {
   implicit val materializer = ActorMaterializer()
   val config = ConfigFactory.load
 
-  val fetchingProcess = new FetchingProcess with HardcodedURLsStore with HttpURLFetcher with HttpFetchingFlow with KafkaPublisher {
+  val fetchingProcess = new FetchingProcess with FileURLsStore with HttpURLFetcher with HttpFetchingFlow with KafkaPublisher {
     override implicit val ec: ExecutionContext = that.ec
     override val system: ActorSystem = that.system
 
@@ -34,6 +36,8 @@ object Main extends App {
     override def wsClient: StandaloneWSClient = StandaloneAhcWSClient()
 
     override val topic: String = config.getString("kafka.topic")
+
+    override def path: Path = Paths.get("src/main/resources/urls")
   }
 
   val pageContentRefresher = system.actorOf(PageContentRefresher.props(fetchingProcess))
