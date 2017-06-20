@@ -5,28 +5,49 @@ import akka.kafka.scaladsl.Consumer
 import akka.kafka.{Subscriptions, ConsumerSettings}
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
+import com.typesafe.config.ConfigFactory
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.{StringDeserializer, ByteArrayDeserializer}
 
+import scala.concurrent.ExecutionContext
+
 object MailerRunner extends App {
   implicit val system = ActorSystem("Newspaper-Mailer-System")
+  implicit val ec: ExecutionContext = system.dispatcher
   implicit val materializer = ActorMaterializer()
 
-  val host = "192.168.99.100" //TODO: move to config
-  val mailRecipient = MailRecipient("patryk@scalac.io")
-  val mailer: MailSender = new LogSender() //TODO: use some dependency injection
+  val configuration = ConfigFactory.load()
 
-  //TODO: use Protobuff
-  val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new StringDeserializer)
-    .withBootstrapServers(s"$host:9092")
+  val mailRecipient = MailRecipient("patryk+newsletter@scalac.io")
+  val mailer: MailSender = buildNewMailer()
+
+  val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, ChangeDetectedPBDeserializer())
     .withGroupId("Newspaper-Mailer")
     .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
 
   val subscription = Subscriptions.topics("newspaper")
   Consumer.committableSource(consumerSettings, subscription)
     .mapAsync(1) { msg =>
-      mailer.send(mailRecipient, msg.record.value())
+      mailer.send(mailRecipient, msg.record.value().pageUrl).map(_ => msg)
+    }.mapAsync(1) { msg =>
       msg.committableOffset.commitScaladsl()
     }
     .runWith(Sink.ignore)
+
+
+
+  def buildNewMailer() = {
+    val mailingConf = configuration.getConfig("email")
+    mailingConf.getBoolean("debug") match {
+      case false =>
+        new SmtpMailSender(new MailerConf(
+          host = mailingConf.getString("host"),
+          port = mailingConf.getInt("port"),
+          user = mailingConf.getString("user"),
+          password = mailingConf.getString("password")
+        ))
+      case _ =>
+        new LogSender()
+    }
+  }
 }
