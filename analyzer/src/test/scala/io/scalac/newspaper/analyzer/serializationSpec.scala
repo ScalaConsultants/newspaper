@@ -2,7 +2,7 @@ package io.scalac.newspaper.analyzer
 
 import org.scalatest._
 
-import events._
+import io.scalac.newspaper.events._
 
 class serializationSpec extends FlatSpec with Matchers {
 

@@ -1,8 +1,0 @@
-syntax = "proto3";
-
-package io.scalac.newspaper.mailer;
-
-message ChangeDetected {
-    string pageUrl = 1;
-    string pageContent = 2;
-}

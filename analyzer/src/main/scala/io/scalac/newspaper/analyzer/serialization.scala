@@ -4,7 +4,7 @@ import com.trueaccord.scalapb.{Message, GeneratedMessage, GeneratedMessageCompan
 import java.util
 import org.apache.kafka.common.serialization.{Serializer, Deserializer}
 
-import events._
+import io.scalac.newspaper.events._
 
 class ProtobufSerializer[T <: GeneratedMessage with Message[T]](messageCompanion: GeneratedMessageCompanion[T]) extends Serializer[T] {
 

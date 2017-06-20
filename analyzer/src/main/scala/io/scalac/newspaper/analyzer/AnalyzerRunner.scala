@@ -5,12 +5,12 @@ import akka.kafka.ProducerMessage
 import akka.kafka.scaladsl.{Consumer, Producer}
 import akka.kafka.{Subscriptions, ConsumerSettings, ProducerSettings}
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Sink
+import akka.stream.scaladsl.{Source, Sink}
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.{ProducerRecord}
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
 
-import events._
+import io.scalac.newspaper.events._
 
 object AnalyzerRunner extends App {
   implicit val system = ActorSystem("Newspaper-Analyzer-System")
@@ -36,4 +36,5 @@ object AnalyzerRunner extends App {
     .map(_.message.passThrough)
     .mapAsync(1)(_.commitScaladsl())
     .runWith(Sink.ignore)
+
 }
