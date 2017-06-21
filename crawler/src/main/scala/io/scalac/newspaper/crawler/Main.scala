@@ -4,19 +4,16 @@ import java.nio.file.{Path, Paths}
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import io.scalac.newspaper.crawler.fetching.FetchingProcess
+import com.typesafe.config.{Config, ConfigFactory}
+import configs.Configs
 import io.scalac.newspaper.crawler.fetching.HttpFetchingFlow.FetchingConfig
 import io.scalac.newspaper.crawler.fetching.{FetchingProcess, HttpFetchingFlow}
 import io.scalac.newspaper.crawler.publishing.KafkaPublisher
 import io.scalac.newspaper.crawler.urls.FileURLsStore
-import com.typesafe.config.{Config, ConfigFactory}
-import configs.Configs
-import io.scalac.newspaper.crawler.Main.config
 import play.api.libs.ws.StandaloneWSClient
 import play.api.libs.ws.ahc.StandaloneAhcWSClient
 
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
 
 object Main extends App {
