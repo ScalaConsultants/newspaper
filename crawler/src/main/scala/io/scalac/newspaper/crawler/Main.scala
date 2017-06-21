@@ -23,6 +23,8 @@ object Main extends App {
   implicit val ec = system.dispatcher
   implicit val materializer = ActorMaterializer()
   val config = ConfigFactory.load
+  val wsClient = StandaloneAhcWSClient()
+  val topic = config.getString("kafka.topic")
 
   val fetchingProcess = new FetchingProcess with FileURLsStore with HttpFetchingFlow with KafkaPublisher {
     override implicit def ec: ExecutionContext = that.ec
@@ -33,9 +35,9 @@ object Main extends App {
       getDuration(config, "crawler.http.timeout")
     )
 
-    override def wsClient: StandaloneWSClient = StandaloneAhcWSClient()
+    override def wsClient: StandaloneWSClient = that.wsClient
 
-    override def topic: String = config.getString("kafka.topic")
+    override def topic: String = that.topic
 
     override def urlsFilePath: Path = Paths.get("src/main/resources/urls")
   }
