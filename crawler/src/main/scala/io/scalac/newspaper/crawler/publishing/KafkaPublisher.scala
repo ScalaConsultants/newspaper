@@ -20,7 +20,7 @@ trait KafkaPublisher extends Publisher {
   def topic: String
   private def producerSettings = ProducerSettings(system, new ByteArraySerializer, new ContentFetchedSerializer)
 
-  override def publish: Sink[URLFetched, Future[Done]] = Sink.foreach(println)
+  override def publish: Sink[URLFetched, Future[Done]] =
     Flow[URLFetched]
       .map(new ProducerRecord[Array[Byte], ContentFetched](topic, _))
       .toMat(Producer.plainSink[Array[Byte], ContentFetched](producerSettings))(Keep.right)

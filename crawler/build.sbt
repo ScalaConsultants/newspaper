@@ -2,7 +2,7 @@ name := "newspaper-crawler"
 
 version := "1.0"
 
-scalaVersion := "2.12.1"
+scalaVersion := "2.11.11"
 
 scalacOptions ++= Seq (
   "-feature",
@@ -21,7 +21,6 @@ libraryDependencies ++= {
 
   val akkaV = "2.5.2"
   val scalatestV = "3.0.1"
-  val quartzSchedulerV = "1.6.1-akka-2.5.x"
   val playWSV = "1.0.0-M10"
   val akkaStreamsKafkaV = "0.16"
   val configsV = "0.4.4"
@@ -31,7 +30,6 @@ libraryDependencies ++= {
   Seq (
     "com.typesafe.akka" %% "akka-actor" % akkaV,
     "com.typesafe.akka" %% "akka-stream" % akkaV,
-    "com.enragedginger" %% "akka-quartz-scheduler" % quartzSchedulerV,
     "com.typesafe.play" %% "play-ahc-ws-standalone" % playWSV,
     "com.typesafe.akka" %% "akka-stream-kafka" % akkaStreamsKafkaV,
     "com.github.kxbmap" %% "configs" % configsV,

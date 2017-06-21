@@ -6,10 +6,10 @@ import akka.stream.scaladsl.{Sink, Source}
 import akka.testkit.TestKit
 import io.scalac.newspaper.crawler.fetching.FetchingFlow._
 import io.scalac.newspaper.crawler.fetching.HttpFetchingFlow.FetchingConfig
-import io.scalac.newspaper.crawler.fetching.HttpURLFetcher.URLFetcherConfig
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import play.api.libs.ws.StandaloneWSClient
+import scala.concurrent.duration._
 
 import scala.collection.immutable.{Seq, Set}
 import scala.concurrent.{ExecutionContext, Future, TimeoutException}
@@ -21,10 +21,19 @@ class HttpFetchingFlowSpec extends TestKit(ActorSystem("test-system")) with Word
 
   override def afterAll(): Unit = TestKit.shutdownActorSystem(system)
 
-  val cut = new HttpFetchingFlow with TestHttpURLFetcher {
-    override def fetchingConfig: FetchingConfig = FetchingConfig(3)
+  val cut = new HttpFetchingFlow {
+    override def fetchingConfig: FetchingConfig = FetchingConfig(3, 10 seconds)
+
+    override def get(url: String): Future[URLFetchingResult] = url match {
+      case "timeout" => Future.failed(new TimeoutException())
+      case "exception" => Future.failed(illegalArgumentException)
+      case "badRequest" => Future.successful(URLNotFetched(url, 404, "BadRequest"))
+      case url: String => Future.successful(url2URLFetched(url))
+    }
 
     override implicit val ec: ExecutionContext = system.dispatcher
+
+    override def wsClient: StandaloneWSClient = ???
   }
 
   "HttpFetchingFlow" should {
@@ -60,17 +69,4 @@ class HttpFetchingFlowSpec extends TestKit(ActorSystem("test-system")) with Word
   }
 
   private def url2URLFetched(url: String): URLFetched = URLFetched(url, "CONTENT")
-
-  trait TestHttpURLFetcher extends HttpURLFetcher {
-    override def wsClient: StandaloneWSClient = ???
-
-    override def urlFetcherConfig: URLFetcherConfig = ???
-
-    override def get(url: String): Future[URLFetchingResult] = url match {
-      case "timeout" => Future.failed(new TimeoutException())
-      case "exception" => Future.failed(illegalArgumentException)
-      case "badRequest" => Future.successful(URLNotFetched(url, 404, "BadRequest"))
-      case url: String => Future.successful(url2URLFetched(url))
-    }
-  }
 }

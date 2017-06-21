@@ -8,10 +8,10 @@ import akka.util.ByteString
 
 trait FileURLsStore extends URLsStore{
 
-  def path: Path
+  def urlsFilePath: Path
 
   override def getURLs: Source[String, NotUsed] =
-    FileIO.fromPath(path)
+    FileIO.fromPath(urlsFilePath)
       .via(Framing.delimiter(ByteString("\n"), 1024, true))
       .map(_.utf8String)
       .mapMaterializedValue(_ => NotUsed)
