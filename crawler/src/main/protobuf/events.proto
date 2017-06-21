@@ -1,6 +1,0 @@
-syntax = "proto3";
-
-message ContentFetched {
-    string pageUrl = 1;
-    string pageContent = 2;
-}
