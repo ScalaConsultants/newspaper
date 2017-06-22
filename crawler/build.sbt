@@ -2,6 +2,8 @@ name := "newspaper-crawler"
 
 version := "1.0"
 
+organization := "io.scalac"
+
 scalaVersion := "2.11.11"
 
 scalacOptions ++= Seq (
@@ -11,13 +13,10 @@ scalacOptions ++= Seq (
   "-language:implicitConversions",
   "UTF-8"
 )
-resolvers += Resolver.bintrayRepo("cakesolutions", "maven")
-
-PB.targets in Compile := Seq(
-  scalapb.gen() -> (sourceManaged in Compile).value
-)
 
 libraryDependencies ++= {
+
+  val newspaperSchemaV = "0.1.0-SNAPSHOT"
 
   val akkaV = "2.5.2"
   val scalatestV = "3.0.1"
@@ -28,6 +27,8 @@ libraryDependencies ++= {
   val scalaLoggingV = "3.5.0"
 
   Seq (
+    "io.scalac" %% "newspaper-schema" % newspaperSchemaV,
+
     "com.typesafe.akka" %% "akka-actor" % akkaV,
     "com.typesafe.akka" %% "akka-stream" % akkaV,
     "com.typesafe.play" %% "play-ahc-ws-standalone" % playWSV,
@@ -35,6 +36,7 @@ libraryDependencies ++= {
     "com.github.kxbmap" %% "configs" % configsV,
     "com.typesafe.scala-logging" %% "scala-logging" % scalaLoggingV,
     "ch.qos.logback" % "logback-classic" % logbackV,
+
     "com.typesafe.akka" %% "akka-testkit" % akkaV % "test",
     "org.scalatest" %% "scalatest" % scalatestV % "test"
   )
