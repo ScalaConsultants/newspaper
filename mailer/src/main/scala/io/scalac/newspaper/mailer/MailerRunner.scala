@@ -9,7 +9,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import com.typesafe.config.{Config, ConfigFactory}
 import io.scalac.newspaper.mailer.db.{SlickSendOrdersRepository, SendOrdersRepository}
-import io.scalac.newspaper.mailer.inbound.{MailingProcess, ChangeDetectedPBDeserializer}
+import io.scalac.newspaper.mailer.inbound.{EventProcess, ChangeDetectedPBDeserializer}
 import io.scalac.newspaper.mailer.outbound._
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer}
@@ -69,7 +69,7 @@ object MailerRunnerHelper {
   }
 
   def buildNewMailingProcess(repo: SendOrdersRepository) = {
-    new MailingProcess(repo)
+    new EventProcess(repo)
   }
 
   def startCronActor(system: ActorSystem,

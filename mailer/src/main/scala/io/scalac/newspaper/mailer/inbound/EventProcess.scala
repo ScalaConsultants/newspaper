@@ -6,7 +6,7 @@ import io.scalac.newspaper.mailer.outbound.MailRecipient
 
 import scala.concurrent.Future
 
-class MailingProcess(repo: SendOrdersRepository) {
+class EventProcess(repo: SendOrdersRepository) {
   val emails = Seq(
     MailRecipient("patryk+newsletter@scalac.io"),
     MailRecipient("patryk+newsletter2@scalac.io")
