@@ -43,7 +43,7 @@ object MailerRunner extends App {
     }
     .runWith(Sink.ignore)
 
-  startCronActor(system, repo, mailer)
+  startCronActor(configuration, system, repo, mailer)
 }
 
 object MailerRunnerHelper {
@@ -72,14 +72,19 @@ object MailerRunnerHelper {
     new EventProcess(repo)
   }
 
-  def startCronActor(system: ActorSystem,
+  def startCronActor(configuration: Config,
+                     system: ActorSystem,
                      repository: SendOrdersRepository,
                      mailer: MailSender) = {
     implicit val ec =  system.dispatcher
     val cron = system.actorOf(NotificationSendingCron.props(repository, mailer))
+
+    val delay = configuration.getInt("mailing-cron.delay")
+    val interval = configuration.getInt("mailing-cron.interval")
+
     system.scheduler.schedule(
-      Duration(15, TimeUnit.SECONDS), //initial delay
-      Duration(60, TimeUnit.SECONDS), //interval
+      Duration(delay, TimeUnit.SECONDS),
+      Duration(interval, TimeUnit.SECONDS),
       cron,
       NotificationSendingCron.SendNow
     )

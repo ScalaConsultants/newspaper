@@ -1,7 +1,6 @@
 package io.scalac.newspaper.mailer.outbound
 
 import akka.actor.{Props, ActorLogging, Actor}
-import io.scalac.newspaper.mailer.MailRecipient
 import io.scalac.newspaper.mailer.db.{SendOrders, SendOrdersRepository}
 
 import scala.concurrent.Future
@@ -23,10 +22,9 @@ class NotificationSendingCron(db: SendOrdersRepository, mail: MailSender) extend
       }
   }
 
-  def trySendingToUser(user: String, orders: Seq[SendOrders]): Future[Boolean] = {
-    val to = MailRecipient(user)
+  def trySendingToUser(user: MailRecipient, orders: Seq[SendOrders]): Future[Boolean] = {
     val content = orders.map(_.url).mkString(" \n ")
-    mail.send(to, content).flatMap { _ =>
+    mail.send(user, content).flatMap { _ =>
       val deliveredUpdates = orders.map(_.id).flatten
       db.markAsSent(deliveredUpdates)
     }

@@ -20,7 +20,7 @@ class SlickSendOrdersRepository(db: Database) extends SendOrdersRepository {
 
   override def add(users: Seq[MailRecipient], url: String): Future[Boolean] = {
     val orders = users.map { email =>
-      SendOrders(None, url, email.to, Timestamp.valueOf(LocalDateTime.now()), false)
+      SendOrders(None, url, email, Timestamp.valueOf(LocalDateTime.now()), false)
     }
     db.run {
       query ++= orders
@@ -41,10 +41,14 @@ class SlickSendOrdersRepository(db: Database) extends SendOrdersRepository {
 }
 
 object SlickSendOrdersRepository {
+  implicit val entityTypeMapper = MappedColumnType.base[MailRecipient, String] (
+    r => r.to,
+    MailRecipient.apply)
+
   private[this] class SendOrdersTable(tag: Tag) extends Table[SendOrders](tag, "send_orders") {
     def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     def url = column[String]("url")
-    def forUser = column[String]("for_user")
+    def forUser = column[MailRecipient]("for_user")
     def timeAdded = column[Timestamp]("time_added")
     def wasSent = column[Boolean]("was_sent")
 
@@ -55,4 +59,4 @@ object SlickSendOrdersRepository {
 }
 
 
-case class SendOrders(id: Option[Int], url: String, forUser: String, timeAdded: Timestamp, wasSent: Boolean)
+case class SendOrders(id: Option[Int], url: String, forUser: MailRecipient, timeAdded: Timestamp, wasSent: Boolean)
