@@ -9,7 +9,7 @@ lazy val schema          = "io.scalac"         %% "newspaper-schema"  % "0.1.0-S
 
 lazy val root = project
   .in(file("."))
-  .aggregate(core, kafka)
+  .aggregate(core, kafka, cli)
   .settings(
     inThisBuild(List(
       organization := "io.scalac",
@@ -27,7 +27,8 @@ lazy val root = project
         "-Ywarn-unused"
       )
     )),
-    name := "newspaper-analyzer"
+    name := "newspaper-analyzer",
+    run := (run in Compile in kafka).evaluated
   )
 
 lazy val core = project
@@ -50,12 +51,18 @@ lazy val kafka = project
       akkaStreamKafka,
       schema,
       scalatest % "test"
+    ),
+    PB.targets in Compile := Seq(
+      scalapb.gen() -> (sourceManaged in Compile).value
     )
   )
   .dependsOn(core)
 
-PB.targets in Compile in kafka := Seq(
-  scalapb.gen() -> (sourceManaged in Compile).value
-)
-
-run := (run in Compile in kafka).evaluated
+lazy val cli = project
+  .in(file("cli"))
+  .settings(
+    name := "newspaper-analyzer-cli",
+    libraryDependencies ++= Seq(
+    )
+  )
+  .dependsOn(core)
