@@ -12,6 +12,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 trait SendOrdersRepository {
   //TODO: use wrapper types
   def add(users: Seq[MailRecipient], url: String): Future[Boolean]
+  def allReadyToSend(): Future[Seq[SendOrders]]
+  def markAsSent(ids: Seq[Int]): Future[Boolean]
 }
 
 class SlickSendOrdersRepository(db: Database) extends SendOrdersRepository {
@@ -23,6 +25,18 @@ class SlickSendOrdersRepository(db: Database) extends SendOrdersRepository {
     }
     db.run {
       query ++= orders
+    }.map(_ => true)
+  }
+
+  override def allReadyToSend(): Future[Seq[SendOrders]] = {
+    db.run {
+      query.filter(_.wasSent === false).result
+    }
+  }
+
+  override def markAsSent(ids: Seq[Int]): Future[Boolean] = {
+    db.run {
+      query.filter(_.wasSent === false).map(_.wasSent).update(true)
     }.map(_ => true)
   }
 }
