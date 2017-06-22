@@ -1,7 +1,7 @@
 package io.scalac.newspaper.mailer.outbound
 
 import akka.actor.{Props, ActorLogging, Actor}
-import io.scalac.newspaper.mailer.{MailRecipient, MailSender}
+import io.scalac.newspaper.mailer.MailRecipient
 import io.scalac.newspaper.mailer.db.{SendOrders, SendOrdersRepository}
 
 import scala.concurrent.Future

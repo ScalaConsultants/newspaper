@@ -1,7 +1,8 @@
-package io.scalac.newspaper.mailer
+package io.scalac.newspaper.mailer.inbound
 
 import io.scalac.newspaper.events.ChangeDetected
 import io.scalac.newspaper.mailer.db.SendOrdersRepository
+import io.scalac.newspaper.mailer.outbound.MailRecipient
 
 import scala.concurrent.Future
 

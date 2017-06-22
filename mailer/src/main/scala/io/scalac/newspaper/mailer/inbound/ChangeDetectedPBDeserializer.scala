@@ -1,8 +1,9 @@
-package io.scalac.newspaper.mailer
+package io.scalac.newspaper.mailer.inbound
 
 import java.util
-import org.apache.kafka.common.serialization.Deserializer
+
 import io.scalac.newspaper.events._
+import org.apache.kafka.common.serialization.Deserializer
 
 case class ChangeDetectedPBDeserializer() extends Deserializer[ChangeDetected] {
   override def configure(configs: util.Map[String, _], isKey: Boolean): Unit = () // nothing to do

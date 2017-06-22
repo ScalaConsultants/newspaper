@@ -9,7 +9,8 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import com.typesafe.config.{Config, ConfigFactory}
 import io.scalac.newspaper.mailer.db.{SlickSendOrdersRepository, SendOrdersRepository}
-import io.scalac.newspaper.mailer.outbound.NotificationSendingCron
+import io.scalac.newspaper.mailer.inbound.{MailingProcess, ChangeDetectedPBDeserializer}
+import io.scalac.newspaper.mailer.outbound._
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer}
 
@@ -71,7 +72,9 @@ object MailerRunnerHelper {
     new MailingProcess(repo)
   }
 
-  def startCronActor(system: ActorSystem, repository: SendOrdersRepository, mailer: MailSender) = {
+  def startCronActor(system: ActorSystem,
+                     repository: SendOrdersRepository,
+                     mailer: MailSender) = {
     implicit val ec =  system.dispatcher
     val cron = system.actorOf(NotificationSendingCron.props(repository, mailer))
     system.scheduler.schedule(

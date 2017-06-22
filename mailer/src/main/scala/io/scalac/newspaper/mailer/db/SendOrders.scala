@@ -2,8 +2,7 @@ package io.scalac.newspaper.mailer.db
 
 import java.sql.Timestamp
 import java.time.LocalDateTime
-
-import io.scalac.newspaper.mailer.MailRecipient
+import io.scalac.newspaper.mailer.outbound.MailRecipient
 import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.Future
