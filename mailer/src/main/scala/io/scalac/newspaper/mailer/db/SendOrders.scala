@@ -3,11 +3,32 @@ package io.scalac.newspaper.mailer.db
 import java.sql.Timestamp
 import java.time.LocalDateTime
 
+import io.scalac.newspaper.mailer.MailRecipient
 import slick.jdbc.PostgresProfile.api._
 
-object SendingOrders {
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
-  class SendOrdersTable(tag: Tag) extends Table[SendOrders](tag, "send_orders") {
+trait SendOrdersRepository {
+  //TODO: use wrapper types
+  def add(users: Seq[MailRecipient], url: String): Future[Boolean]
+}
+
+class SlickSendOrdersRepository(db: Database) extends SendOrdersRepository {
+  import SlickSendOrdersRepository._
+
+  override def add(users: Seq[MailRecipient], url: String): Future[Boolean] = {
+    val orders = users.map { email =>
+      SendOrders(None, url, email.to, Timestamp.valueOf(LocalDateTime.now()), false)
+    }
+    db.run {
+      query ++= orders
+    }.map(_ => true)
+  }
+}
+
+object SlickSendOrdersRepository {
+  private[this] class SendOrdersTable(tag: Tag) extends Table[SendOrders](tag, "send_orders") {
     def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     def url = column[String]("url")
     def forUser = column[String]("for_user")
@@ -17,18 +38,8 @@ object SendingOrders {
     def * = (id.?, url, forUser, timeAdded, wasSent) <> (SendOrders.tupled, SendOrders.unapply)
   }
 
-  val query = TableQuery[SendOrdersTable]
-
-  //TODO: remove later, just as an example
-  def addOne() = {
-    val db = Database.forConfig("relational-datastore")
-    try {
-      db.run {
-        query += SendOrders(None, "url", "user", Timestamp.valueOf(LocalDateTime.now()), false)
-      }
-    } finally db.close
-  }
+  private val query = TableQuery[SendOrdersTable]
 }
 
-//TODO: user wrapper types
+
 case class SendOrders(id: Option[Int], url: String, forUser: String, timeAdded: Timestamp, wasSent: Boolean)
