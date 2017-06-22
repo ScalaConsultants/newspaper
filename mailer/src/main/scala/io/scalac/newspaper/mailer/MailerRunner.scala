@@ -34,7 +34,7 @@ object MailerRunner extends App {
     }
     .runWith(Sink.ignore)
 
-
+  io.scalac.newspaper.mailer.db.SendingOrders.addOne()
 
   def buildNewMailer() = {
     val mailingConf = configuration.getConfig("email")

@@ -5,6 +5,13 @@ version := "1.0"
 scalaVersion := "2.11.11"
 
 lazy val akkaVersion = "2.5.2"
+lazy val slickVersion = "3.2.0"
+
+val dbDependencies = Seq(
+  "com.typesafe.slick" %% "slick" % slickVersion,
+  "org.slf4j" % "slf4j-nop" % "1.6.4",
+  "com.typesafe.slick" %% "slick-hikaricp" % slickVersion
+)
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % akkaVersion,
@@ -16,7 +23,7 @@ libraryDependencies ++= Seq(
   "io.scalac" %% "newspaper-schema" % "0.1.0-SNAPSHOT",
   "org.postgresql" % "postgresql" % "42.1.1",
   "org.scalatest" %% "scalatest" % "3.0.1" % "test"
-)
+) ++ dbDependencies
 
 resolvers += "lightshed-maven" at "http://dl.bintray.com/content/lightshed/maven"
 
@@ -24,7 +31,7 @@ PB.targets in Compile := Seq(
   scalapb.gen() -> (sourceManaged in Compile).value
 )
 
-flywayUrl := "jdbc:postgresql://192.168.99.100:5432/mailer_db"//TODO: how to provide host?
+flywayUrl := "jdbc:postgresql://192.168.99.100:5432/mailer_db" //TODO: how to provide host?
 
 flywayUser := "postgres"
 flywayPassword := "postgres123"
