@@ -33,5 +33,5 @@ PB.targets in Compile := Seq(
 
 flywayUrl := "jdbc:postgresql://192.168.99.100:5432/mailer_db" //TODO: how to provide host?
 
-flywayUser := "postgres"
-flywayPassword := "postgres123"
+flywayUser := "mailer" //set in db-scripts, a on top level script
+flywayPassword := "mailer123"
