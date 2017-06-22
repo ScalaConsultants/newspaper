@@ -1,4 +1,4 @@
-package io.scalac.newspaper.analyzer
+package io.scalac.newspaper.analyzer.kafka
 
 import akka.actor.ActorSystem
 import akka.kafka.{ ConsumerMessage, ConsumerSettings, ProducerMessage, ProducerSettings, Subscriptions }
@@ -10,6 +10,7 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{ ByteArrayDeserializer, ByteArraySerializer }
 
 import io.scalac.newspaper.events._
+import io.scalac.newspaper.analyzer.core.Analyzer
 
 object AnalyzerRunner extends App {
 

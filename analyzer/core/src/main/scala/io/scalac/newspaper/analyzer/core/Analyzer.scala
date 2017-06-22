@@ -1,4 +1,4 @@
-package io.scalac.newspaper.analyzer
+package io.scalac.newspaper.analyzer.core
 
 import scala.collection.mutable
 
