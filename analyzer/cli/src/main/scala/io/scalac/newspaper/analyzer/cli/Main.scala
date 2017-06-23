@@ -19,7 +19,7 @@ object Main extends App {
       val newContent = readFile(newFile)
       analyzer.checkForChanges("", oldContent)
       val changes = analyzer.checkForChanges("", newContent)
-      println(changes)
+      changes.foreach(println)
 
     case _ =>
       println("Usage: analyzer old.html new.html")
