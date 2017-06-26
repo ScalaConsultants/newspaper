@@ -1,4 +1,4 @@
-package io.scalac.newspaper.mailer
+package io.scalac.newspaper.mailer.outbound
 
 import javax.mail.internet.InternetAddress
 
@@ -23,7 +23,8 @@ class LogSender() extends MailSender {
 case class MailerConf(host: String, port: Int, user: String, password: String)
 
 class SmtpMailSender(conf: MailerConf) extends MailSender {
-  import courier._, Defaults._
+  import courier._
+  import Defaults._
 
   val mailer = Mailer(conf.host, conf.port)
     .auth(true)
