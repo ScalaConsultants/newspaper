@@ -9,7 +9,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import com.typesafe.config.{Config, ConfigFactory}
 import io.scalac.newspaper.mailer.db.{SlickSendOrdersRepository, SendOrdersRepository}
-import io.scalac.newspaper.mailer.inbound.{EventProcess, ChangeDetectedPBDeserializer}
+import io.scalac.newspaper.mailer.inbound.{EventProcess, RequestNotificationPBDeserializer}
 import io.scalac.newspaper.mailer.outbound._
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer}
@@ -29,11 +29,11 @@ object MailerRunner extends App {
   val repo: SendOrdersRepository = buildRepository()
   val process = buildNewMailingProcess(repo)
 
-  val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, ChangeDetectedPBDeserializer())
+  val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, RequestNotificationPBDeserializer())
     .withGroupId("Newspaper-Mailer")
     .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
 
-  val subscription = Subscriptions.topics("newspaper")
+  val subscription = Subscriptions.topics("newspaper-notifications")
 
   Consumer.committableSource(consumerSettings, subscription)
     .mapAsync(1) { msg =>
