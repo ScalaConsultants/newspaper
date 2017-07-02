@@ -7,6 +7,13 @@ message ChangeDetected {
     string pageContent = 2;
 }
 
+message RequestNotification {
+    string pageUrl = 1;
+    string destinationEmail = 2;
+    string destinationName = 3;
+}
+
+
 message ContentFetched {
     string pageUrl = 1;
     string pageContent = 2;
