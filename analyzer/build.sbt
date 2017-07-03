@@ -51,9 +51,6 @@ lazy val kafka = project
       akkaStreamKafka,
       schema,
       scalatest % "test"
-    ),
-    PB.targets in Compile := Seq(
-      scalapb.gen() -> (sourceManaged in Compile).value
     )
   )
   .dependsOn(core)
@@ -61,8 +58,6 @@ lazy val kafka = project
 lazy val cli = project
   .in(file("cli"))
   .settings(
-    name := "newspaper-analyzer-cli",
-    libraryDependencies ++= Seq(
-    )
+    name := "newspaper-analyzer-cli"
   )
   .dependsOn(core)
