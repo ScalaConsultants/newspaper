@@ -11,8 +11,11 @@ scalacOptions ++= Seq (
   "-deprecation",
   "-language:postfixOps",
   "-language:implicitConversions",
+  "-language:higherKinds",
   "UTF-8"
 )
+
+resolvers += Resolver.jcenterRepo
 
 libraryDependencies ++= {
 
@@ -25,19 +28,26 @@ libraryDependencies ++= {
   val configsV = "0.4.4"
   val logbackV = "1.1.7"
   val scalaLoggingV = "3.5.0"
+  val levelDbV = "0.7"
+  val leveldbjniV = "1.8"
+  val persistenceInMemV = "1.3.7"
 
   Seq (
     "io.scalac" %% "newspaper-schema" % newspaperSchemaV,
 
     "com.typesafe.akka" %% "akka-actor" % akkaV,
     "com.typesafe.akka" %% "akka-stream" % akkaV,
+    "com.typesafe.akka" %% "akka-persistence" % akkaV,
     "com.typesafe.play" %% "play-ahc-ws-standalone" % playWSV,
     "com.typesafe.akka" %% "akka-stream-kafka" % akkaStreamsKafkaV,
     "com.github.kxbmap" %% "configs" % configsV,
     "com.typesafe.scala-logging" %% "scala-logging" % scalaLoggingV,
     "ch.qos.logback" % "logback-classic" % logbackV,
+    "org.iq80.leveldb" % "leveldb" % levelDbV,
+    "org.fusesource.leveldbjni" % "leveldbjni-all" % leveldbjniV,
 
     "com.typesafe.akka" %% "akka-testkit" % akkaV % "test",
-    "org.scalatest" %% "scalatest" % scalatestV % "test"
+    "org.scalatest" %% "scalatest" % scalatestV % "test",
+    "com.github.dnvriend" %% "akka-persistence-inmemory" % persistenceInMemV % "test"
   )
 }
