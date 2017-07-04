@@ -32,7 +32,7 @@ class KafkaOutboundService() extends OutboundService {
 
   val source: SourceQueueWithComplete[SubscribeUser] =
     Source.queue[SubscribeUser](100, OverflowStrategy.fail).map { sub =>
-      new ProducerRecord[Array[Byte], SubscribeUser]("newspaper-users-foo", sub)
+      new ProducerRecord[Array[Byte], SubscribeUser]("newspaper-users", sub)
     }
     .to(Producer.plainSink(producerSettings))
     .run()
@@ -40,8 +40,8 @@ class KafkaOutboundService() extends OutboundService {
   override def publishNewSubscription(sub: Subscriber): Future[Unit] = {
     val domainObject = SubscribeUser(sub.email, sub.name.getOrElse(""))
 
-    source.offer(domainObject).map{ res =>
-      println(s"--- Offering result $res")
+    source.offer(domainObject).map{ _ =>
+      ()
     }
   }
 }
