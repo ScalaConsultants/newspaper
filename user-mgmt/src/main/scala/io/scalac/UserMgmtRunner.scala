@@ -7,7 +7,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import io.scalac.inbound.{ChangeDetectedPBDeserializer, SlickUserRepository, SubscribeUserPBDeserializer, UserRepository}
 import io.scalac.newspaper.events.RequestNotification
-import io.scalac.outbound.{FixedTranslationService, RequestNotificationPBSerializer, TranslationService}
+import io.scalac.outbound.{SlickTranslationService, RequestNotificationPBSerializer, TranslationService}
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
@@ -26,12 +26,13 @@ object UserMgmtRunner extends App {
 
   val changeDetectedSubscription = Subscriptions.topics("newspaper")
 
-  val translateMessages: TranslationService = new FixedTranslationService()
   val userService = UserMgmtHelper.buildRepository()
+  val translateMessages: TranslationService = new SlickTranslationService(userService)
 
   //Inbound 1: enrich Change Detected events with user data
   Consumer.committableSource(changeDetectedConsumerSettings, changeDetectedSubscription)
     .mapAsyncUnordered(10) { msg => // we don't care about order
+      println(s"Received ${msg.record.value().pageUrl}") // TODO: replace with proper logging
       translateMessages.translate(msg.record.value()).map { case publishRequests =>
         publishRequests.map { case publishRequest =>
           val record = new ProducerRecord[Array[Byte], RequestNotification]("newspaper-notifications", publishRequest)

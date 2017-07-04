@@ -11,14 +11,14 @@ import scala.concurrent.ExecutionContext.Implicits.global //TODO: inject EC
 
 trait UserRepository {
   def addOrUpdate(u: SubscribeUser): Future[Unit]
-  def getAll(): Future[Seq[String]]
+  def getAll(): Future[Seq[UserSubscription]]
 }
 
 class SlickUserRepository(db: Database) extends UserRepository {
   import SlickUserRepository._
 
   override def addOrUpdate(u: SubscribeUser): Future[Unit] = {
-    val translated = UserSubscribtion(
+    val translated = UserSubscription(
       MailRecipient(u.subscriberEmail),
       u.subscriberName,
       Timestamp.from(Instant.now()))
@@ -29,7 +29,9 @@ class SlickUserRepository(db: Database) extends UserRepository {
     }.map{ _ => ()}
   }
 
-  override def getAll(): Future[Seq[String]] = ???
+  override def getAll(): Future[Seq[UserSubscription]] = db.run {
+    query.result
+  }
 }
 
 object SlickUserRepository {
@@ -37,16 +39,16 @@ object SlickUserRepository {
     r => r.to,
     MailRecipient.apply)
 
-  private[this] class UserSubscriptionTable(tag: Tag) extends Table[UserSubscribtion](tag, "user_subscriptions") {
+  private[this] class UserSubscriptionTable(tag: Tag) extends Table[UserSubscription](tag, "user_subscriptions") {
     def userEmail = column[MailRecipient]("user_email", O.PrimaryKey)
     def userName = column[String]("user_name")
     def timeAdded = column[Timestamp]("time_added")
 
-    def * = (userEmail, userName, timeAdded) <> (UserSubscribtion.tupled, UserSubscribtion.unapply)
+    def * = (userEmail, userName, timeAdded) <> (UserSubscription.tupled, UserSubscription.unapply)
   }
 
   private val query = TableQuery[UserSubscriptionTable]
 }
 
 case class MailRecipient(to: String) extends AnyVal
-case class UserSubscribtion(userEmail: MailRecipient, userName: String, timeAdded: Timestamp)
+case class UserSubscription(userEmail: MailRecipient, userName: String, timeAdded: Timestamp)
