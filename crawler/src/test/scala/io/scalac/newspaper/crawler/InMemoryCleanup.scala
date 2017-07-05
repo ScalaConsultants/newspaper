@@ -5,9 +5,7 @@ import akka.persistence.inmemory.extension.{InMemoryJournalStorage, InMemorySnap
 import akka.testkit.TestProbe
 import org.scalatest.{BeforeAndAfterEach, Suite}
 
-/**
-  * Created by rsekulski on 04.07.2017.
-  */
+
 trait InMemoryCleanup extends BeforeAndAfterEach { _: Suite =>
 
   implicit def system: ActorSystem

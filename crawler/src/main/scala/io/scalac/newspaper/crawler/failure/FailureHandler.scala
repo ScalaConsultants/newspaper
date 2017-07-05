@@ -8,9 +8,7 @@ import io.scalac.newspaper.crawler.urls.URLsStore
 
 import scala.collection.mutable
 
-/**
-  * Created by rsekulski on 30.06.2017.
-  */
+
 object FailureHandler {
   case class FailureReported(url: String, result: URLFetchingResult)
 

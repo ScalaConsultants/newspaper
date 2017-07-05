@@ -14,9 +14,7 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import scala.collection.mutable
 import scala.concurrent.Future
 
-/**
-  * Created by rsekulski on 04.07.2017.
-  */
+
 class FailureHandlerSpec extends TestKit(ActorSystem("test-system")) with ImplicitSender with WordSpecLike with BeforeAndAfterAll with InMemoryCleanup with Matchers {
 
   override def afterAll(): Unit =

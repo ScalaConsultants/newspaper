@@ -11,7 +11,6 @@ scalacOptions ++= Seq (
   "-deprecation",
   "-language:postfixOps",
   "-language:implicitConversions",
-  "-language:higherKinds",
   "UTF-8"
 )
 

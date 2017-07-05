@@ -13,9 +13,7 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import scala.collection.immutable
 import scala.concurrent.Future
 
-/**
-  * Created by rsekulski on 04.07.2017.
-  */
+
 class FileURLsStoreSpec extends TestKit(ActorSystem("test-system")) with WordSpecLike with BeforeAndAfterAll with Matchers with ScalaFutures {
 
   override def afterAll(): Unit = TestKit.shutdownActorSystem(system)
