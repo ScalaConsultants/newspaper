@@ -10,7 +10,7 @@ import scala.collection.mutable
 
 
 object FailureHandler {
-  case class FailureReported(url: String, result: URLFetchingResult)
+  case class FailureReported(failure: URLFetchingResult)
 
   def props(urlsStore: URLsStore, config: FailureHandlerConfig = defaultConfig) = Props(new FailureHandler(urlsStore, config))
 
@@ -20,7 +20,7 @@ object FailureHandler {
   type FailuresStore = mutable.Map[String, Seq[URLFetchingResult]]
 
   case class GetFailures(url: String)
-  case class URLFailures(failures: Option[Seq[URLFetchingResult]])
+  case class URLFailures(failures: Seq[URLFetchingResult])
   case object Complete
 }
 
@@ -31,12 +31,12 @@ class FailureHandler(urlsStore: URLsStore, config: FailureHandlerConfig) extends
   override def persistenceId: String = "failure-handler"
 
   override def receiveCommand: Receive = {
-    case GetFailures(url) => sender() ! URLFailures(failures.get(url))
+    case GetFailures(url) => sender() ! URLFailures(failures.getOrElse(url, Seq.empty))
 
     case _:URLFetched => log.error("Received URLFetched in FailureHandler")
 
     case f:URLFetchingResult =>
-      persist(FailureReported(f.url, f)) { failure =>
+      persist(FailureReported(f)) { failure =>
         log.info(s"Failure detected: $f")
         updateState(failure)
         removeNotActiveURL(f.url)
@@ -55,8 +55,8 @@ class FailureHandler(urlsStore: URLsStore, config: FailureHandlerConfig) extends
   }
 
   private def updateState(failureReported: FailureReported): Unit = {
-    val currentState = failures.getOrElse(failureReported.url, Seq.empty[URLFetchingResult])
-    failures.update(failureReported.url, currentState :+ failureReported.result)
+    val currentState = failures.getOrElse(failureReported.failure.url, Seq.empty[URLFetchingResult])
+    failures.update(failureReported.failure.url, currentState :+ failureReported.failure)
   }
 
   private def removeNotActiveURL(url: String) = {

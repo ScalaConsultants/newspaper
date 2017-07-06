@@ -34,17 +34,17 @@ class FailureHandlerSpec extends TestKit(ActorSystem("test-system")) with Implic
 
       cut ! GetFailures(url)
       expectMsgPF() {
-        case URLFailures(Some(failures)) => failures.size shouldEqual 2
+        case URLFailures(failures) => failures.size shouldEqual 2
       }
 
       cut ! GetFailures(url2)
       expectMsgPF() {
-        case URLFailures(Some(failures)) => failures.size shouldEqual 1
+        case URLFailures(failures) => failures.size shouldEqual 1
       }
 
       cut ! GetFailures("successfulURL")
       expectMsgPF() {
-        case URLFailures(failures) => failures shouldBe None
+        case URLFailures(failures) => failures.size shouldEqual 0
       }
     }
 
@@ -73,7 +73,7 @@ class FailureHandlerSpec extends TestKit(ActorSystem("test-system")) with Implic
 
       cut ! GetFailures(url)
       expectMsgPF() {
-        case URLFailures(Some(failures)) => failures.size shouldEqual 2
+        case URLFailures(failures) => failures.size shouldEqual 2
       }
     }
   }
