@@ -10,7 +10,9 @@ trait FetchingFlow {
 }
 
 object FetchingFlow {
-  trait URLFetchingResult
+  trait URLFetchingResult {
+    val url: String
+  }
   case class URLFetched(url: String, content: String) extends URLFetchingResult
   case class URLNotFetched(url: String, responseCode: Int, content: String) extends URLFetchingResult
   case class URLFetchingTimeout(url: String) extends URLFetchingResult

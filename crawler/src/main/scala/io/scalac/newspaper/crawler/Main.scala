@@ -1,11 +1,12 @@
 package io.scalac.newspaper.crawler
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.Paths
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorRef, ActorSystem}
 import akka.stream.ActorMaterializer
 import com.typesafe.config.{Config, ConfigFactory}
 import configs.Configs
+import io.scalac.newspaper.crawler.failure.FailureHandler
 import io.scalac.newspaper.crawler.fetching.HttpFetchingFlow.FetchingConfig
 import io.scalac.newspaper.crawler.fetching.{FetchingProcess, HttpFetchingFlow}
 import io.scalac.newspaper.crawler.publishing.KafkaPublisher
@@ -23,12 +24,13 @@ object Main extends App {
   implicit val ec = system.dispatcher
   implicit val materializer = ActorMaterializer()
   val config = ConfigFactory.load
+
   val wsClient = StandaloneAhcWSClient()
   val topic = config.getString("kafka.topic")
 
-  val fetchingProcess = new FetchingProcess with FileURLsStore with HttpFetchingFlow with KafkaPublisher {
+  val fetchingProcess = new FetchingProcess with HttpFetchingFlow with KafkaPublisher {
     override implicit def ec: ExecutionContext = that.ec
-    override def system: ActorSystem = that.system
+    override implicit def system: ActorSystem = that.system
 
     override def fetchingConfig = FetchingConfig(
       config.getInt("crawler.http.max.parallelism"),
@@ -39,10 +41,12 @@ object Main extends App {
 
     override def topic: String = that.topic
 
-    override def urlsFilePath: Path = Paths.get("src/main/resources/urls")
+    override val urlsStore = new FileURLsStore(Paths.get("src/main/resources/urls"))
+
+    override val failureHandler: ActorRef = system.actorOf(FailureHandler.props(urlsStore), "FailureHandler")
   }
 
-  val pageContentRefresher = system.actorOf(PageContentRefresher.props(fetchingProcess))
+  val pageContentRefresher = system.actorOf(PageContentRefresher.props(fetchingProcess), "PageContentRefresher")
 
   system.scheduler.schedule(
     getDuration(config, "crawler.fetching.initial.delay"),
