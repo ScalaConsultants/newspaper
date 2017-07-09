@@ -18,3 +18,8 @@ message ContentFetched {
     string pageUrl = 1;
     string pageContent = 2;
 }
+
+message SubscribeUser {
+    string subscriberEmail = 1;
+    string subscriberName = 2;
+}

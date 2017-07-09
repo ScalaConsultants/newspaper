@@ -8,6 +8,7 @@ lazy val akkaVersion = "2.5.2"
 lazy val slickVersion = "3.2.0"
 
 val dbDependencies = Seq(
+  "org.postgresql" % "postgresql" % "42.1.1",
   "com.typesafe.slick" %% "slick" % slickVersion,
   "org.slf4j" % "slf4j-nop" % "1.6.4",
   "com.typesafe.slick" %% "slick-hikaricp" % slickVersion
@@ -21,7 +22,6 @@ libraryDependencies ++= Seq(
   "com.typesafe" % "config" % "1.3.1",
   "ch.lightshed" %% "courier" % "0.1.4",
   "io.scalac" %% "newspaper-schema" % "0.1.0-SNAPSHOT",
-  "org.postgresql" % "postgresql" % "42.1.1",
   "org.scalatest" %% "scalatest" % "3.0.1" % "test",
   "org.mockito" % "mockito-all" % "1.9.5" % "test"
 ) ++ dbDependencies

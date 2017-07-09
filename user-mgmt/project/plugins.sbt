@@ -1,0 +1,1 @@
+resolvers += "Flyway" at "https://flywaydb.org/repo"
