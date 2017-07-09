@@ -5,6 +5,7 @@ import akka.kafka.{ConsumerSettings, ProducerMessage, ProducerSettings, Subscrip
 import akka.kafka.scaladsl.{Consumer, Producer}
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
+import com.typesafe.config.ConfigFactory
 import io.scalac.inbound.{ChangeDetectedPBDeserializer, SlickUserRepository, SubscribeUserPBDeserializer, UserRepository}
 import io.scalac.newspaper.events.RequestNotification
 import io.scalac.outbound.{SlickTranslationService, RequestNotificationPBSerializer, TranslationService}
@@ -18,6 +19,8 @@ object UserMgmtRunner extends App {
   implicit val system = ActorSystem("Newspaper-User-Mgmt-System")
   implicit val ec: ExecutionContext = system.dispatcher
   implicit val materializer = ActorMaterializer()
+
+  UserMgmtHelper.checkDBMigrations()
 
   val changeDetectedConsumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, ChangeDetectedPBDeserializer())
     .withGroupId("User-Mgmt")
@@ -68,5 +71,19 @@ object UserMgmtHelper {
     import slick.jdbc.PostgresProfile.api._
     val db = Database.forConfig("relational-datastore")
     new SlickUserRepository(db)
+  }
+
+  def checkDBMigrations() = {
+    import org.flywaydb.core.Flyway
+
+    val conf = ConfigFactory.load()
+    val url = conf.getString("relational-datastore.url")
+    val topLevelUser = conf.getString("migration.user")
+    val topLevelUserPass = conf.getString("migration.password")
+
+
+    val flyway = new Flyway()
+    flyway.setDataSource(url, topLevelUser, topLevelUserPass)
+    flyway.migrate()
   }
 }

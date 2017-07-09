@@ -16,7 +16,7 @@ import scala.concurrent.Future
 
 trait KafkaPublisher extends Publisher {
 
-  def system: ActorSystem
+  implicit def system: ActorSystem
   def topic: String
   private def producerSettings = ProducerSettings(system, new ByteArraySerializer, new ContentFetchedSerializer)
 
