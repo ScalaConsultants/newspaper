@@ -23,3 +23,7 @@ message SubscribeUser {
     string subscriberEmail = 1;
     string subscriberName = 2;
 }
+
+message ObservePage {
+    string pageUrl = 1;
+}
