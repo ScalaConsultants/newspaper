@@ -11,7 +11,7 @@ lazy val akkaVersion = "2.5.2"
 
 libraryDependencies += guice
 libraryDependencies += "com.typesafe.akka" %% "akka-actor" % akkaVersion
-libraryDependencies += "com.typesafe.akka" %% "akka-testkit" % akkaVersion
+libraryDependencies += "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test
 libraryDependencies += "com.typesafe.akka" %% "akka-stream" % akkaVersion
 libraryDependencies += "com.typesafe.akka" %% "akka-stream-kafka" % "0.14"
 libraryDependencies += "io.scalac" %% "newspaper-schema" % "0.1.0-SNAPSHOT"
