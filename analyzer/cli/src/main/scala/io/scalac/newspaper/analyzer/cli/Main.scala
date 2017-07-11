@@ -3,7 +3,7 @@ package io.scalac.newspaper.analyzer.cli
 import java.nio.file._
 import java.nio.charset.StandardCharsets.UTF_8
 
-import io.scalac.newspaper.analyzer.core.Analyzer
+import io.scalac.newspaper.analyzer.core._
 
 object Main extends App {
 
@@ -11,15 +11,14 @@ object Main extends App {
     new String(Files.readAllBytes(Paths.get(path)), UTF_8)
   }
 
-  val analyzer = new Analyzer
-
   args match {
     case Array(oldFile, newFile) =>
-      val oldContent = readFile(oldFile)
-      val newContent = readFile(newFile)
-      analyzer.checkForChanges("", oldContent)
-      val changes = analyzer.checkForChanges("", newContent)
-      changes.foreach(println)
+      val oldContent = PageContent(readFile(oldFile))
+      val newContent = PageContent(readFile(newFile))
+      val analyzer = new Analyzer()
+      val newChanges = analyzer.checkForChanges(Some(oldContent), newContent)
+
+      newChanges.foreach(println)
 
     case _ =>
       println("Usage: analyzer old.html new.html")
