@@ -1,7 +1,9 @@
 package io.scalac.newspaper.analyzer.core
 
+import java.util.concurrent.ConcurrentHashMap
 import scala.concurrent.Future
 import scala.collection.mutable
+import scala.collection.JavaConverters._
 
 trait Archive {
   def get(url: PageUrl): Future[Option[PageContent]]
@@ -10,7 +12,8 @@ trait Archive {
 
 class InMemoryArchive(entries: (PageUrl, PageContent)*) extends Archive {
 
-  private val urls: mutable.Map[PageUrl, PageContent] = mutable.HashMap(entries: _*)
+  private val urls: mutable.Map[PageUrl, PageContent] = (new ConcurrentHashMap).asScala
+  urls ++= entries
 
   override def get(url: PageUrl): Future[Option[PageContent]] = Future.successful {
     urls.get(url)
