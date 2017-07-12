@@ -1,0 +1,4 @@
+CREATE TABLE pages (
+    url VARCHAR(500) NOT NULL PRIMARY KEY,
+    content TEXT NOT NULL
+);

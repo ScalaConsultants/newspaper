@@ -8,17 +8,20 @@ import akka.stream.scaladsl.{ Sink }
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{ ByteArrayDeserializer, ByteArraySerializer }
+import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
 
 import io.scalac.newspaper.events._
 import io.scalac.newspaper.analyzer.core._
+import io.scalac.newspaper.analyzer.db.postgres._
 
 object AnalyzerRunner extends App {
 
   implicit val system = ActorSystem("Newspaper-Analyzer-System")
   implicit val materializer = ActorMaterializer()
 
-  val archive  = new InMemoryArchive
+  val archive  = new PostgresArchive
   val analyzer = new Analyzer
 
   val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new ContentFetchedDeserializer)
@@ -28,7 +31,7 @@ object AnalyzerRunner extends App {
   val producerSettings = ProducerSettings(system, new ByteArraySerializer, new ChangeDetectedSerializer)
 
   val subscription = Subscriptions.topics("newspaper-content")
-  Consumer.committableSource(consumerSettings, subscription)
+  val done = Consumer.committableSource(consumerSettings, subscription)
     .mapAsyncUnordered(1) { msg =>
       println(s"[ANALYZING] ${msg.record.value.pageUrl}")
 
@@ -76,5 +79,11 @@ object AnalyzerRunner extends App {
     .collect{ case Some(offset) => offset }
     .mapAsync(1)(_.commitScaladsl())
     .runWith(Sink.ignore)
+
+  done.onComplete { _ =>
+    println("Shutting down...")
+    system.terminate()
+    archive.close()
+  }
 
 }
