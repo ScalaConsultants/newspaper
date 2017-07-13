@@ -8,9 +8,7 @@ import akka.stream.scaladsl.{ Sink }
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{ ByteArrayDeserializer, ByteArraySerializer }
-import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
 
 import io.scalac.newspaper.events._
 import io.scalac.newspaper.analyzer.core._
