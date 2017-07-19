@@ -1,7 +1,8 @@
 package io.scalac.newspaper.analyzer.kafka
 
 import akka.actor.ActorSystem
-import akka.kafka.{ ConsumerMessage, ConsumerSettings, ProducerMessage, ProducerSettings, Subscriptions }
+import akka.kafka.{ ConsumerSettings, ProducerMessage, ProducerSettings, Subscriptions }
+import akka.kafka.ConsumerMessage.CommittableOffset
 import akka.kafka.scaladsl.{ Consumer, Producer }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{ Sink }
@@ -15,6 +16,17 @@ import io.scalac.newspaper.analyzer.core._
 import io.scalac.newspaper.analyzer.db.postgres._
 
 object AnalyzerRunner extends App {
+
+  def mapLastDifferently[A, B](list: List[A])(f: A => B)(fLast: A => B): List[B] = {
+    @annotation.tailrec
+    def loop(mapped: List[B], rest: List[A]): List[B] = rest match {
+      case Nil => mapped
+      case x :: Nil => fLast(x) :: mapped
+      case x :: ys => loop(f(x) :: mapped, ys)
+    }
+
+    loop(Nil, list).reverse
+  }
 
   implicit val system = ActorSystem("Newspaper-Analyzer-System")
   implicit val materializer = ActorMaterializer()
@@ -37,33 +49,26 @@ object AnalyzerRunner extends App {
       val url = PageUrl(input.pageUrl)
       val newContent = PageContent(input.pageContent)
 
-      val oldContentFuture = archive.put(url, newContent)
-
-      val changesFuture = oldContentFuture map { oldContent =>
-        analyzer.checkForChanges(oldContent, newContent)
-      }
-
-      // We want to commit the offset only after producing the last message
-      // in order to ensure at-least-once delivery.
-      // TODO: Optimize?
-      def recurse(changesRemaining: List[Change]): List[ProducerMessage.Message[Array[Byte], ChangeDetected, Option[ConsumerMessage.CommittableOffset]]] = changesRemaining match {
-        case Nil => Nil
-
-        case change :: Nil =>
-          val record = new ProducerRecord[Array[Byte], ChangeDetected]("newspaper", ChangeDetected(url.url, change.content))
-          println(s"[CHANGE+COMMIT] ${msg.record.value.pageUrl}")
-          ProducerMessage.Message(record, Some(msg.committableOffset)) :: Nil
-
-        case change :: rest =>
-          val record = new ProducerRecord[Array[Byte], ChangeDetected]("newspaper", ChangeDetected(url.url, change.content))
-          println(s"[CHANGE] ${msg.record.value.pageUrl}")
-          ProducerMessage.Message(record, None) :: recurse(rest)
-      }
-
       for {
-        changes <- changesFuture
+        oldContent <- archive.put(url, newContent)
       } yield {
-        val messages = recurse(changes)
+        val changes = analyzer.checkForChanges(oldContent, newContent)
+
+        val records = changes.map { change =>
+          val event = ChangeDetected(url.url, change.content)
+          new ProducerRecord[Array[Byte], ChangeDetected]("newspaper", event)
+        }
+
+        // We want to commit the offset only after producing the last message
+        // in order to ensure at-least-once delivery.
+        val messages = mapLastDifferently(records) { record =>
+          println(s"[CHANGE] ${url}")
+          ProducerMessage.Message(record, None: Option[CommittableOffset])
+        } { record =>
+          println(s"[CHANGE+COMMIT] ${url}")
+          ProducerMessage.Message(record, Some(msg.committableOffset))
+        }
+
         if (messages.isEmpty) {
           // No changes detected, we need to commit the offset manually
           msg.committableOffset.commitScaladsl()
