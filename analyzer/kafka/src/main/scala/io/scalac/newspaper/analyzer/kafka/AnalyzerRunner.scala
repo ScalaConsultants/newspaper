@@ -42,7 +42,7 @@ object AnalyzerRunner extends App {
 
   val subscription = Subscriptions.topics("newspaper-content")
   val done = Consumer.committableSource(consumerSettings, subscription)
-    .mapAsyncUnordered(1) { msg =>
+    .mapAsync(1) { msg =>
       println(s"[ANALYZING] ${msg.record.value.pageUrl}")
 
       val input = msg.record.value
@@ -73,6 +73,7 @@ object AnalyzerRunner extends App {
           // No changes detected, we need to commit the offset manually
           msg.committableOffset.commitScaladsl()
         }
+
         messages
       }
     }
