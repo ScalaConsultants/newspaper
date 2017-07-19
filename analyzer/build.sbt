@@ -1,16 +1,17 @@
 lazy val akkaVersion  = "2.5.2"
 lazy val slickVersion = "3.2.0"
 
-lazy val akkaActor       = "com.typesafe.akka"  %% "akka-actor"        % akkaVersion
-lazy val akkaTestkit     = "com.typesafe.akka"  %% "akka-testkit"      % akkaVersion
-lazy val akkaStream      = "com.typesafe.akka"  %% "akka-stream"       % akkaVersion
-lazy val akkaStreamKafka = "com.typesafe.akka"  %% "akka-stream-kafka" % "0.14"
-lazy val scalatest       = "org.scalatest"      %% "scalatest"         % "3.0.1"
-lazy val schema          = "io.scalac"          %% "newspaper-schema"  % "0.1.0-SNAPSHOT"
-lazy val slick           = "com.typesafe.slick" %% "slick"             % slickVersion
-lazy val slickHikaricp   = "com.typesafe.slick" %% "slick-hikaricp"    % slickVersion
-lazy val slf4j           = "org.slf4j"          %  "slf4j-nop"         % "1.6.4"
-lazy val postgresql      = "org.postgresql"     %  "postgresql"        % "42.1.1"
+lazy val akkaActor       = "com.typesafe.akka"          %% "akka-actor"        % akkaVersion
+lazy val akkaTestkit     = "com.typesafe.akka"          %% "akka-testkit"      % akkaVersion
+lazy val akkaStream      = "com.typesafe.akka"          %% "akka-stream"       % akkaVersion
+lazy val akkaStreamKafka = "com.typesafe.akka"          %% "akka-stream-kafka" % "0.14"
+lazy val scalatest       = "org.scalatest"              %% "scalatest"         % "3.0.1"
+lazy val schema          = "io.scalac"                  %% "newspaper-schema"  % "0.1.0-SNAPSHOT"
+lazy val slick           = "com.typesafe.slick"         %% "slick"             % slickVersion
+lazy val slickHikaricp   = "com.typesafe.slick"         %% "slick-hikaricp"    % slickVersion
+lazy val slf4j           = "org.slf4j"                  %  "slf4j-nop"         % "1.6.4"
+lazy val postgresql      = "org.postgresql"             %  "postgresql"        % "42.1.1"
+lazy val scalaLogging    = "com.typesafe.scala-logging" %% "scala-logging"     % "3.7.1"
 
 lazy val root = project
   .in(file("."))
@@ -73,6 +74,7 @@ lazy val kafka = project
       akkaStream,
       akkaStreamKafka,
       schema,
+      scalaLogging,
       scalatest % "test"
     )
   )

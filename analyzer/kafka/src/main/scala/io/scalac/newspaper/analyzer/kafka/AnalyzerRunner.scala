@@ -7,6 +7,7 @@ import akka.kafka.scaladsl.{ Consumer, Producer }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{ Sink }
 import com.typesafe.config.ConfigFactory
+import com.typesafe.scalalogging.Logger
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{ ByteArrayDeserializer, ByteArraySerializer }
@@ -35,6 +36,8 @@ object AnalyzerRunner extends App {
   val config = ConfigFactory.load()
   val maxParallelism = config.getInt("maxParallelism")
 
+  val logger = Logger("analyzer")
+
   val archive  = new PostgresArchive
   val analyzer = new Analyzer
 
@@ -47,7 +50,7 @@ object AnalyzerRunner extends App {
   val subscription = Subscriptions.topics("newspaper-content")
   val done = Consumer.committableSource(consumerSettings, subscription)
     .mapAsync(maxParallelism) { msg =>
-      println(s"[ANALYZING] ${msg.record.value.pageUrl}")
+      logger.debug(s"[ANALYZING] ${msg.record.value.pageUrl}")
 
       val input = msg.record.value
       val url = PageUrl(input.pageUrl)
@@ -66,10 +69,10 @@ object AnalyzerRunner extends App {
         // We want to commit the offset only after producing the last message
         // in order to ensure at-least-once delivery.
         val messages = mapLastDifferently(records) { record =>
-          println(s"[CHANGE] ${url}")
+          logger.debug(s"[CHANGE] ${url}")
           ProducerMessage.Message(record, None: Option[CommittableOffset])
         } { record =>
-          println(s"[CHANGE+COMMIT] ${url}")
+          logger.debug(s"[CHANGE+COMMIT] ${url}")
           ProducerMessage.Message(record, Some(msg.committableOffset))
         }
 
@@ -89,7 +92,7 @@ object AnalyzerRunner extends App {
     .runWith(Sink.ignore)
 
   done.onComplete { _ =>
-    println("Shutting down...")
+    logger.info("Shutting down...")
     system.terminate()
     archive.close()
   }
