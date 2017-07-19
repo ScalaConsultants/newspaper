@@ -6,6 +6,7 @@ import akka.kafka.ConsumerMessage.CommittableOffset
 import akka.kafka.scaladsl.{ Consumer, Producer }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{ Sink }
+import com.typesafe.config.ConfigFactory
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{ ByteArrayDeserializer, ByteArraySerializer }
@@ -31,6 +32,9 @@ object AnalyzerRunner extends App {
   implicit val system = ActorSystem("Newspaper-Analyzer-System")
   implicit val materializer = ActorMaterializer()
 
+  val config = ConfigFactory.load()
+  val maxParallelism = config.getInt("maxParallelism")
+
   val archive  = new PostgresArchive
   val analyzer = new Analyzer
 
@@ -42,7 +46,7 @@ object AnalyzerRunner extends App {
 
   val subscription = Subscriptions.topics("newspaper-content")
   val done = Consumer.committableSource(consumerSettings, subscription)
-    .mapAsync(1) { msg =>
+    .mapAsync(maxParallelism) { msg =>
       println(s"[ANALYZING] ${msg.record.value.pageUrl}")
 
       val input = msg.record.value
@@ -81,7 +85,7 @@ object AnalyzerRunner extends App {
     .via(Producer.flow(producerSettings))
     .map(_.message.passThrough)
     .collect{ case Some(offset) => offset }
-    .mapAsync(1)(_.commitScaladsl())
+    .mapAsync(maxParallelism)(_.commitScaladsl())
     .runWith(Sink.ignore)
 
   done.onComplete { _ =>
