@@ -57,6 +57,8 @@ object AnalyzerRunner extends App {
       val newContent = PageContent(input.pageContent)
 
       for {
+        // FIXME: Doing a write here breaks at-least-once semantics
+        //        https://github.com/ScalaConsultants/newspaper/issues/37
         oldContent <- archive.put(url, newContent)
       } yield {
         val changes = analyzer.checkForChanges(oldContent, newContent)
