@@ -14,8 +14,9 @@ import org.apache.kafka.clients.producer.ProducerRecord
 
 object AnalyzerFlow {
 
-  type ContentFetchedCommittableMessage = CommittableMessage[Array[Byte], ContentFetched]
-  type ChangeDetectedMessage = Message[Array[Byte], ChangeDetected, Option[CommittableOffset]]
+  type Key = Array[Byte]
+  type ContentFetchedCommittableMessage = CommittableMessage[Key, ContentFetched]
+  type ChangeDetectedMessage = Message[Key, ChangeDetected, Option[CommittableOffset]]
 
   def apply(
     analyzer       : Analyzer,
@@ -39,7 +40,7 @@ object AnalyzerFlow {
 
         val records = changes.map { change =>
           val event = ChangeDetected(url.url, change.content)
-          new ProducerRecord[Array[Byte], ChangeDetected]("newspaper", event)
+          new ProducerRecord[Key, ChangeDetected]("newspaper", event)
         }
 
         // We want to commit the offset only after producing the last message
