@@ -30,7 +30,7 @@ object AnalyzerRunner extends App {
   val logger = Logger("analyzer")
 
   val archive  = new PostgresArchive
-  val analyzer = new Analyzer
+  val analyzer = new SimpleAnalyzer
 
   val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new ContentFetchedDeserializer)
     .withGroupId("Newspaper-Analyzer")

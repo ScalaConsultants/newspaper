@@ -15,7 +15,7 @@ object Main extends App {
     case Array(oldFile, newFile) =>
       val oldContent = PageContent(readFile(oldFile))
       val newContent = PageContent(readFile(newFile))
-      val analyzer = new Analyzer()
+      val analyzer = new SimpleAnalyzer()
       val newChanges = analyzer.checkForChanges(Some(oldContent), newContent)
 
       newChanges.foreach(println)
