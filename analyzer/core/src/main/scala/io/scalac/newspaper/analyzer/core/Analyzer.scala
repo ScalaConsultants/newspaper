@@ -1,6 +1,12 @@
 package io.scalac.newspaper.analyzer.core
 
-class Analyzer {
+trait Analyzer {
+
+  def checkForChanges(oldContentOption: Option[PageContent], newContent: PageContent): List[Change]
+
+}
+
+class SimpleAnalyzer extends Analyzer {
 
   private val commentPattern = """(?s)<!--.*?-->""".r
   private val tagPattern = """(?s)<(/?)\s*([a-zA-Z0-1-]+)[^>]*>""".r

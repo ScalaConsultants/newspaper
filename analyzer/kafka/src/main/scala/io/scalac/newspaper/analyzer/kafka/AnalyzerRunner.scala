@@ -1,25 +1,36 @@
 package io.scalac.newspaper.analyzer.kafka
 
-import akka.actor.ActorSystem
-import akka.kafka.{ ConsumerMessage, ConsumerSettings, ProducerMessage, ProducerSettings, Subscriptions }
-import akka.kafka.scaladsl.{ Consumer, Producer }
-import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{ Sink }
-import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.common.serialization.{ ByteArrayDeserializer, ByteArraySerializer }
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-import io.scalac.newspaper.events._
+import akka.{Done, NotUsed}
+import akka.actor.ActorSystem
+import akka.kafka.{ConsumerSettings, ProducerSettings, Subscriptions}
+import akka.kafka.scaladsl.{ Producer, Consumer }
+import akka.kafka.scaladsl.Consumer.Control
+import akka.stream.{ActorMaterializer, ClosedShape}
+import akka.stream.scaladsl.{Flow, GraphDSL, RunnableGraph, Sink, Source}
+import com.typesafe.config.ConfigFactory
+import com.typesafe.scalalogging.Logger
+import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
+
 import io.scalac.newspaper.analyzer.core._
+import io.scalac.newspaper.analyzer.db.postgres._
+import AnalyzerFlow._
 
 object AnalyzerRunner extends App {
 
   implicit val system = ActorSystem("Newspaper-Analyzer-System")
   implicit val materializer = ActorMaterializer()
 
-  val archive  = new InMemoryArchive
-  val analyzer = new Analyzer
+  val config = ConfigFactory.load()
+  val maxParallelism = config.getInt("maxParallelism")
+
+  val logger = Logger("analyzer")
+
+  val archive  = new PostgresArchive
+  val analyzer = new SimpleAnalyzer
 
   val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new ContentFetchedDeserializer)
     .withGroupId("Newspaper-Analyzer")
@@ -28,53 +39,37 @@ object AnalyzerRunner extends App {
   val producerSettings = ProducerSettings(system, new ByteArraySerializer, new ChangeDetectedSerializer)
 
   val subscription = Subscriptions.topics("newspaper-content")
-  Consumer.committableSource(consumerSettings, subscription)
-    .mapAsyncUnordered(1) { msg =>
-      println(s"[ANALYZING] ${msg.record.value.pageUrl}")
 
-      val input = msg.record.value
-      val url = PageUrl(input.pageUrl)
-      val newContent = PageContent(input.pageContent)
+  val contentFetchedSource: Source[ContentFetchedCommittableMessage, Control] = Consumer.committableSource(consumerSettings, subscription)
 
-      val oldContentFuture = archive.put(url, newContent)
+  val analyzerFlow = AnalyzerFlow(analyzer, archive, logger, maxParallelism)
 
-      val changesFuture = oldContentFuture map { oldContent =>
-        analyzer.checkForChanges(oldContent, newContent)
-      }
-
-      // We want to commit the offset only after producing the last message
-      // in order to ensure at-least-once delivery.
-      // TODO: Optimize?
-      def recurse(changesRemaining: List[Change]): List[ProducerMessage.Message[Array[Byte], ChangeDetected, Option[ConsumerMessage.CommittableOffset]]] = changesRemaining match {
-        case Nil => Nil
-
-        case change :: Nil =>
-          val record = new ProducerRecord[Array[Byte], ChangeDetected]("newspaper", ChangeDetected(url.url, change.content))
-          println(s"[CHANGE+COMMIT] ${msg.record.value.pageUrl}")
-          ProducerMessage.Message(record, Some(msg.committableOffset)) :: Nil
-
-        case change :: rest =>
-          val record = new ProducerRecord[Array[Byte], ChangeDetected]("newspaper", ChangeDetected(url.url, change.content))
-          println(s"[CHANGE] ${msg.record.value.pageUrl}")
-          ProducerMessage.Message(record, None) :: recurse(rest)
-      }
-
-      for {
-        changes <- changesFuture
-      } yield {
-        val messages = recurse(changes)
-        if (messages.isEmpty) {
-          // No changes detected, we need to commit the offset manually
-          msg.committableOffset.commitScaladsl()
-        }
-        messages
-      }
-    }
-    .mapConcat(identity)
+  val changeDetectedCommitFlow: Flow[ChangeDetectedMessage, Done, NotUsed] =
+    Flow[ChangeDetectedMessage]
     .via(Producer.flow(producerSettings))
     .map(_.message.passThrough)
     .collect{ case Some(offset) => offset }
-    .mapAsync(1)(_.commitScaladsl())
-    .runWith(Sink.ignore)
+    .mapAsync(maxParallelism)(_.commitScaladsl())
+
+  val runnable: RunnableGraph[Future[Done]] =
+    RunnableGraph.fromGraph(GraphDSL.create(Sink.ignore) { implicit builder => ignore =>
+      import GraphDSL.Implicits._
+
+      val fetchContent = builder.add(contentFetchedSource)
+      val analyze = builder.add(analyzerFlow)
+      val commitChanges = builder.add(changeDetectedCommitFlow)
+
+      fetchContent ~> analyze ~> commitChanges ~> ignore
+
+      ClosedShape
+    })
+
+  val done = runnable.run()
+
+  done.onComplete { _ =>
+    logger.info("Shutting down...")
+    system.terminate()
+    archive.close()
+  }
 
 }
