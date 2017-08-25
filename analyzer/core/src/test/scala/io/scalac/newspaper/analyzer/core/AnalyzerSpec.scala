@@ -4,8 +4,8 @@ import org.scalatest._
 
 class AnalyzerSpec extends WordSpecLike with Matchers {
 
-  "Analyzer" should {
-    val analyzer = new Analyzer
+  "SimpleAnalyzer" should {
+    val analyzer = new SimpleAnalyzer
 
     val content1a = PageContent("bar")
     val content1b = PageContent("baz bar")
