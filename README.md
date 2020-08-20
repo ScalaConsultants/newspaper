@@ -47,3 +47,5 @@ You may need to change the version string in `kafka_2.12-0.10.2.1`.
 ``` Shell
 docker exec -it postgres psql -h postgres -U postgres
 ```
+
+Developed by [Scalac](https://scalac.io/?utm_source=scalac_github&utm_campaign=scalac1&utm_medium=web)
